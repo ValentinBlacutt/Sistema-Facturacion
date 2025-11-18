@@ -1,0 +1,518 @@
+﻿@model sistemaFacturacion.Models.Factura
+
+@{
+    ViewData["Title"] = "Crear Factura";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/CrearFact.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+}
+
+
+
+
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-xl-10 col-lg-11">
+            <div class="main-container">
+                <!-- Header -->
+                <div class="page-header">
+                    <h1>
+                        <i class="fas fa-file-invoice-dollar me-3"></i>
+                        Sistema de Facturación
+                    </h1>
+                    <p class="mb-0 mt-2 opacity-90">Crear nueva venta</p>
+                </div>
+
+                <!-- Content -->
+                <div class="content-section">
+                    <form asp-action="Create" method="post">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                        <!-- Información Básica -->
+                        <div class="form-section">
+                            <h3 class="section-title">
+                                <i class="fas fa-info-circle"></i>
+                                Información de la Venta
+                            </h3>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label asp-for="Fecha" class="form-label fw-semibold">Fecha y Hora</label>
+                                    <input asp-for="Fecha" class="form-control form-control-custom"
+                                           value="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" readonly />
+                                </div>
+                                <div class="col-md-6">
+                                    <label asp-for="Total" class="form-label fw-semibold">Total de la Venta</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input asp-for="Total" class="form-control form-control-custom"
+                                               id="facturaTotal" value="0.00" readonly />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Scanner Section -->
+                        <div class="form-section">
+                            <h3 class="section-title">
+                                <i class="fas fa-barcode"></i>
+                                Escanear Productos
+                            </h3>
+
+                            <div class="scanner-container">
+                                <div class="video-container">
+                                    <video id="barcode-video" autoplay playsinline></video>
+                                </div>
+
+                                <div class="scanner-controls">
+                                    <button type="button" id="startScannerBtn" class="btn btn-custom btn-primary-custom">
+                                        <i class="fas fa-camera me-2"></i>
+                                        Activar Escáner
+                                    </button>
+                                    <button type="button" id="manualAddBtn" class="btn btn-custom btn-primary-custom">
+                                        <i class="fas fa-keyboard me-2"></i>
+                                        Ingreso Manual
+                                    </button>
+                                </div>
+
+                                <!-- Status Indicators -->
+                                <div id="barcode-result" class="status-indicator status-success" style="display: none;">
+                                    <i class="fas fa-check-circle me-2"></i>
+                                    Producto agregado: <span id="scanned-product-name"></span>
+                                </div>
+
+                                <div id="barcode-error" class="status-indicator status-error" style="display: none;"></div>
+
+                                <div id="scanning-indicator" class="status-indicator status-scanning" style="display: none;">
+                                    <i class="fas fa-search me-2"></i>
+                                    Escaneando código de barras...
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Items Section -->
+                        <div class="form-section">
+                            <h3 class="section-title">
+                                <i class="fas fa-shopping-cart"></i>
+                                Productos en la Venta
+                            </h3>
+
+                            <div id="invoiceItemsContainer">
+                                <div class="text-center text-muted py-4">
+                                    <i class="fas fa-box-open fa-3x mb-3"></i>
+                                    <p>No hay productos agregados. Escanea o ingresa productos manualmente.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Total y Acciones -->
+                        <div class="total-section">
+                            <h4 class="mb-2">Total de la Venta</h4>
+                            <div class="total-amount" id="display-total">$0.00</div>
+                        </div>
+
+                        <div class="d-grid gap-3 d-md-flex justify-content-md-center">
+                            <button type="submit" class="btn btn-custom btn-success-custom btn-lg px-4">
+                                <i class="fas fa-check-circle me-2"></i>
+                                Generar Venta
+                            </button>
+                            <a asp-action="Index" class="btn btn-outline-secondary btn-lg px-4">
+                                <i class="fas fa-arrow-left me-2"></i>
+                                Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para ingreso manual -->
+<div class="modal fade" id="manualProductModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: var(--border-radius); border: none;">
+            <div class="modal-header" style="background: var(--primary-color); color: white;">
+                <h5 class="modal-title">
+                    <i class="fas fa-keyboard me-2"></i>
+                    Agregar Producto Manualmente
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="productCodeInput" class="form-label fw-semibold">Código de Barras del Producto</label>
+                    <input type="text" class="form-control form-control-custom" id="productCodeInput"
+                           placeholder="Ingrese el código de barras o SKU">
+                    <div class="form-text">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Asegúrese de ingresar el código completo
+                    </div>
+                </div>
+                <div id="manualEntryError" class="alert alert-danger" style="display: none;"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    Cancelar
+                </button>
+                <button type="button" class="btn btn-custom btn-primary-custom" id="confirmManualAdd">
+                    <span id="manualAddText">Agregar Producto</span>
+                    <span id="manualAddSpinner" class="spinner-border spinner-border-sm ms-2" style="display: none;"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
+
+    <script>
+        // Variables globales
+        let quaggaActive = false;
+        let manualProductModal = null;
+        let cameraStream = null;
+        let isProcessingScan = false;
+
+        // 1. Iniciar escáner con QuaggaJS
+        async function startBarcodeScanner() {
+            if (quaggaActive) return;
+
+            try {
+                showScanningStatus(true);
+                hideAllStatus();
+
+                const videoElement = document.querySelector('#barcode-video');
+
+                // Obtener acceso a la cámara
+                cameraStream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: "environment",
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    },
+                    audio: false
+                });
+
+                videoElement.srcObject = cameraStream;
+                await videoElement.play();
+
+                await Quagga.init({
+                    inputStream: {
+                        name: "Live",
+                        type: "LiveStream",
+                        target: videoElement,
+                        constraints: {
+                            facingMode: "environment",
+                            width: 1280,
+                            height: 720
+                        }
+                    },
+                    decoder: {
+                        readers: ['ean_reader', 'code_128_reader', 'upc_reader']
+                    },
+                    locate: true
+                }, function(err) {
+                    if (err) {
+                        showErrorStatus("Error al iniciar escáner: " + err.message);
+                        stopCameraStream();
+                        return;
+                    }
+                    Quagga.start();
+                    quaggaActive = true;
+                    updateScannerButton(true);
+                });
+
+                Quagga.onDetected(function(result) {
+                    const barcode = result.codeResult.code;
+                    handleScannedBarcode(barcode);
+                });
+
+            } catch (error) {
+                showErrorStatus("Error de cámara: " + error.message);
+                stopCameraStream();
+            }
+        }
+
+        // 2. Detener el escáner y la cámara
+        function stopBarcodeScanner() {
+            if (quaggaActive) {
+                Quagga.stop();
+                quaggaActive = false;
+            }
+            stopCameraStream();
+            updateScannerButton(false);
+            hideAllStatus();
+        }
+
+        // 3. Detener el stream de la cámara
+        function stopCameraStream() {
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(track => track.stop());
+                cameraStream = null;
+            }
+            const videoElement = document.querySelector('#barcode-video');
+            if (videoElement) {
+                videoElement.srcObject = null;
+            }
+        }
+
+        // 4. Manejar código escaneado
+        async function handleScannedBarcode(barcode) {
+            if (isProcessingScan) return;
+            isProcessingScan = true;
+
+            try {
+                showLoadingModal(true);
+
+                const response = await fetch(`/Productos/BuscarPorCodigo?codigo=${encodeURIComponent(barcode)}`);
+
+                if (!response.ok) {
+                    throw new Error(await response.text());
+                }
+
+                const data = await response.json();
+
+                if (!data.success) {
+                    throw new Error(data.message);
+                }
+
+                const product = data.producto;
+
+                if (product.stock <= 0) {
+                    throw new Error('Sin stock disponible');
+                }
+
+                addOrUpdateProductInInvoice(product);
+                showSuccessStatus(product.nombre);
+                stopBarcodeScanner();
+
+            } catch (error) {
+                showErrorStatus(error.message);
+                setTimeout(() => {
+                    isProcessingScan = false;
+                }, 2000);
+            } finally {
+                showLoadingModal(false);
+                setTimeout(() => {
+                    isProcessingScan = false;
+                }, 1000);
+            }
+        }
+
+        // 5. Funciones de UI mejoradas
+        function showSuccessStatus(productName) {
+            hideAllStatus();
+            $('#scanned-product-name').text(productName);
+            $('#barcode-result').fadeIn().delay(3000).fadeOut();
+        }
+
+        function showErrorStatus(message) {
+            hideAllStatus();
+            $('#barcode-error').html(`<i class="fas fa-exclamation-triangle me-2"></i>${message}`).fadeIn().delay(4000).fadeOut();
+        }
+
+        function showScanningStatus(show) {
+            if (show) {
+                $('#scanning-indicator').fadeIn();
+            } else {
+                $('#scanning-indicator').fadeOut();
+            }
+        }
+
+        function hideAllStatus() {
+            $('#barcode-result, #barcode-error, #scanning-indicator').hide();
+        }
+
+        function updateScannerButton(isActive) {
+            const btn = $('#startScannerBtn');
+            if (isActive) {
+                btn.html('<i class="fas fa-stop me-2"></i>Detener Escáner');
+                btn.removeClass('btn-primary-custom').addClass('btn-outline-danger');
+            } else {
+                btn.html('<i class="fas fa-camera me-2"></i>Activar Escáner');
+                btn.removeClass('btn-outline-danger').addClass('btn-primary-custom');
+            }
+        }
+
+        function showLoadingModal(show) {
+            if (show) {
+                $('#confirmManualAdd').prop('disabled', true);
+                $('#manualAddSpinner').show();
+                $('#manualAddText').text('Buscando producto...');
+            } else {
+                $('#confirmManualAdd').prop('disabled', false);
+                $('#manualAddSpinner').hide();
+                $('#manualAddText').text('Agregar Producto');
+            }
+        }
+
+        // 6. Configuración del modal manual
+        function setupManualEntry() {
+            manualProductModal = new bootstrap.Modal('#manualProductModal');
+
+            $('#manualAddBtn').click(function() {
+                $('#manualEntryError').hide();
+                $('#productCodeInput').val('').focus();
+                manualProductModal.show();
+            });
+
+            $('#confirmManualAdd').click(function() {
+                const productCode = $('#productCodeInput').val().trim();
+                if (!productCode) {
+                    $('#manualEntryError').text('Por favor, ingrese un código válido').show();
+                    return;
+                }
+                handleScannedBarcode(productCode);
+                manualProductModal.hide();
+            });
+
+            // Enter key support
+            $('#productCodeInput').keypress(function(e) {
+                if (e.which === 13) {
+                    $('#confirmManualAdd').click();
+                }
+            });
+        }
+
+        // 7. Funciones para manejar la factura
+        function addOrUpdateProductInInvoice(product) {
+            const existingItem = $(`[data-product-id="${product.id}"]`);
+
+            if (existingItem.length > 0) {
+                const quantityInput = existingItem.find('.quantity-input');
+                const currentQuantity = parseInt(quantityInput.val()) || 0;
+
+                if (currentQuantity + 1 > product.stock) {
+                    throw new Error('No hay suficiente stock disponible');
+                }
+
+                quantityInput.val(currentQuantity + 1).trigger('input');
+            } else {
+                addNewItemToInvoice(product);
+            }
+        }
+
+        function addNewItemToInvoice(product) {
+            // Ocultar mensaje de "no hay productos"
+            $('#invoiceItemsContainer .text-center').remove();
+
+            const container = $('#invoiceItemsContainer');
+            const newItemHtml = `
+                <div class="invoice-item" data-product-id="${product.id}">
+                    <div class="row align-items-center">
+                        <div class="col-md-5">
+                            <label class="form-label fw-semibold text-muted">Producto</label>
+                            <div class="product-info">
+                                <div class="fw-bold">${product.nombre}</div>
+                                <small class="text-success">Precio: $${product.precio.toFixed(2)}</small>
+                            </div>
+                            <input type="hidden" name="productoIds" value="${product.id}" />
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label fw-semibold text-muted">Stock</label>
+                            <div class="text-info fw-bold">${product.stock}</div>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label fw-semibold text-muted">Cantidad</label>
+                            <input type="number" name="cantidades" class="form-control form-control-custom quantity-input"
+                                   value="1" min="1" max="${product.stock}" oninput="updateItemTotal(this)" />
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label fw-semibold text-muted">Subtotal</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="text" class="form-control form-control-custom item-subtotal"
+                                       value="${product.precio.toFixed(2)}" readonly />
+                            </div>
+                            <input type="hidden" class="item-price" value="${product.precio.toFixed(2)}" />
+                        </div>
+                        <div class="col-md-1 text-center">
+                            <button type="button" class="remove-btn" onclick="removeItem(this)" title="Eliminar producto">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            container.append(newItemHtml);
+            updateGrandTotal();
+        }
+
+        function removeItem(button) {
+            $(button).closest('.invoice-item').fadeOut(300, function() {
+                $(this).remove();
+                updateGrandTotal();
+
+                // Mostrar mensaje si no hay productos
+                if ($('#invoiceItemsContainer .invoice-item').length === 0) {
+                    $('#invoiceItemsContainer').html(`
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-box-open fa-3x mb-3"></i>
+                            <p>No hay productos agregados. Escanea o ingresa productos manualmente.</p>
+                        </div>
+                    `);
+                }
+            });
+        }
+
+        function updateItemTotal(inputElement) {
+            const itemContainer = $(inputElement).closest('.invoice-item');
+            const quantity = parseFloat($(inputElement).val()) || 0;
+            const price = parseFloat(itemContainer.find('.item-price').val()) || 0;
+            const subtotal = quantity * price;
+
+            itemContainer.find('.item-subtotal').val(subtotal.toFixed(2));
+            updateGrandTotal();
+        }
+
+        function updateGrandTotal() {
+            let grandTotal = 0;
+            $('#invoiceItemsContainer .invoice-item').each(function() {
+                const subtotal = parseFloat($(this).find('.item-subtotal').val()) || 0;
+                grandTotal += subtotal;
+            });
+
+            $('#facturaTotal').val(grandTotal.toFixed(2));
+            $('#display-total').text(`$${grandTotal.toFixed(2)}`);
+        }
+
+        // 8. Inicialización
+        $(document).ready(function() {
+            setupManualEntry();
+
+            $('#startScannerBtn').click(function() {
+                if (quaggaActive) {
+                    stopBarcodeScanner();
+                } else {
+                    startBarcodeScanner();
+                }
+            });
+
+            // Limpieza al salir de la página
+            $(window).on('beforeunload', function() {
+                stopBarcodeScanner();
+            });
+
+            // Validación del formulario
+            $('form').on('submit', function(e) {
+                const hasItems = $('#invoiceItemsContainer .invoice-item').length > 0;
+                if (!hasItems) {
+                    e.preventDefault();
+                    alert('Debe agregar al menos un producto a la venta.');
+                    return false;
+                }
+            });
+        });
+    </script>
+}

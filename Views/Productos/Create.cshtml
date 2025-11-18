@@ -1,0 +1,403 @@
+﻿@model sistemaFacturacion.Models.Producto
+
+@{
+    ViewData["Title"] = "Crear Producto";
+}
+
+<div class="container mt-4">
+    <h1 class="text-center mb-4 text-primary fw-bold">
+        <i class="fas fa-box-open me-2"></i> @ViewData["Title"]
+    </h1>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg p-4 rounded-lg border-primary border-opacity-25">
+                <form asp-action="Create" method="post" class="needs-validation" novalidate>
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="Nombre" class="form-label text-secondary"></label>
+                                <input asp-for="Nombre" class="form-control rounded-pill shadow-sm" required />
+                                <span asp-validation-for="Nombre" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="CodigoBarras" class="form-label text-secondary"></label>
+                                <div class="input-group">
+                                    <input asp-for="CodigoBarras" id="barcodeInput" class="form-control rounded-pill shadow-sm" />
+                                    <button type="button" class="btn btn-outline-primary" id="startScannerBtn">
+                                        <i class="fas fa-camera me-1"></i> Escanear
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary" onclick="generateBarcode()">
+                                        <i class="fas fa-random me-1"></i> Generar
+                                    </button>
+                                </div>
+                                <span asp-validation-for="CodigoBarras" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sección del escáner -->
+                    <div id="scannerSection" class="mb-4" style="display: none;">
+                        <div class="bg-light p-3 rounded-lg text-center shadow-sm">
+                            <video id="barcode-video" autoplay playsinline style="width: 100%; height: 200px; border-radius: 8px;"></video>
+                            <div id="barcode-result" class="mt-2 fw-bold text-success" style="display: none;">
+                                <i class="fas fa-check-circle me-1"></i> Código Escaneado: <span id="scanned-code"></span>
+                            </div>
+                            <div id="barcode-error" class="mt-2 fw-bold text-danger" style="display: none;"></div>
+                            <div id="scanning-indicator" class="mt-2 text-info">
+                                <i class="fas fa-search me-1"></i> Escaneando código de barras...
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sección de Precio e Impuestos -->
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                <label asp-for="Precio" class="form-label text-secondary"></label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input asp-for="Precio" id="precioInput" class="form-control rounded-pill shadow-sm" required />
+                                </div>
+                                <span asp-validation-for="Precio" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                <label asp-for="AlicuotaIVA" class="form-label text-secondary"></label>
+                                <select asp-for="AlicuotaIVA" id="alicuotaIVA" class="form-select rounded-pill shadow-sm">
+                                    <option value="0.21">IVA General (21%)</option>
+                                    <option value="0.105">IVA Reducido (10.5%)</option>
+                                    <option value="0">Exento (0%)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                <label class="form-label text-secondary">Desglose Completo</label>
+                                <div class="p-2 bg-light rounded shadow-sm">
+                                    <small>
+                                        <div class="d-flex justify-content-between">
+                                            <span>Neto:</span>
+                                            <span id="netoPreview">$0.00</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between">
+                                            <span>IVA (<span id="ivaPercentage">21</span>%):</span>
+                                            <span id="ivaPreview">$0.00</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between" id="impIntLine" style="display:none;">
+                                            <span>Imp. Interno:</span>
+                                            <span id="impIntAmount">$0.00</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between" id="percepcionLine" style="display:none;">
+                                            <span>Percepción:</span>
+                                            <span id="percepcionAmount">$0.00</span>
+                                        </div>
+                                        <hr class="my-1">
+                                        <div class="d-flex justify-content-between fw-bold">
+                                            <span>Total:</span>
+                                            <span id="totalPreview">$0.00</span>
+                                        </div>
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Impuestos Especiales -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card mb-3 shadow-sm rounded-lg">
+                                <div class="card-header bg-light">
+                                    <div class="form-check form-switch">
+                                        <input asp-for="TieneImpuestoInterno" class="form-check-input" id="impIntToggle" />
+                                        <label asp-for="TieneImpuestoInterno" class="form-check-label text-secondary fw-bold"></label>
+                                    </div>
+                                </div>
+                                <div class="card-body" id="impIntSection" style="@(Model.TieneImpuestoInterno ? "" : "display:none;")">
+                                    <div class="form-group mb-3">
+                                        <label asp-for="PorcentajeImpuestoInterno" class="form-label text-secondary"></label>
+                                        <div class="input-group">
+                                            <input asp-for="PorcentajeImpuestoInterno" id="impIntInput" class="form-control rounded-pill shadow-sm" />
+                                            <span class="input-group-text">%</span>
+                                        </div>
+                                        <span asp-validation-for="PorcentajeImpuestoInterno" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Stock -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="Stock" class="form-label text-secondary"></label>
+                                <input asp-for="Stock" class="form-control rounded-pill shadow-sm" required />
+                                <span asp-validation-for="Stock" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="AlertaStockMinimo" class="form-label text-secondary"></label>
+                                <input asp-for="AlertaStockMinimo" class="form-control rounded-pill shadow-sm" />
+                                <span asp-validation-for="AlertaStockMinimo" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group d-grid gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg rounded-pill shadow-sm">
+                            <i class="fas fa-save me-2"></i> Crear Producto
+                        </button>
+                        <a asp-action="Index" class="btn btn-secondary btn-lg rounded-pill shadow-sm">
+                            <i class="fas fa-arrow-left me-2"></i> Volver a la Lista
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
+
+    <script>
+        // Variables globales
+        let quaggaActive = false;
+        let cameraStream = null;
+
+        // Función para generar un código de barras aleatorio
+        function generateBarcode() {
+            const randomBarcode = Math.floor(1000000000000 + Math.random() * 9000000000000);
+            document.getElementById('barcodeInput').value = randomBarcode;
+        }
+
+        // Iniciar escáner con QuaggaJS
+        async function startBarcodeScanner() {
+            if (quaggaActive) return;
+
+            try {
+                // Mostrar la sección del escáner
+                $('#scannerSection').show();
+                $('#barcode-error').hide();
+                $('#barcode-result').hide();
+                $('#scanning-indicator').show();
+
+                const videoElement = document.querySelector('#barcode-video');
+
+                // Obtener acceso a la cámara
+                cameraStream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: "environment",
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    },
+                    audio: false
+                });
+
+                videoElement.srcObject = cameraStream;
+                await videoElement.play();
+
+                await Quagga.init({
+                    inputStream: {
+                        name: "Live",
+                        type: "LiveStream",
+                        target: videoElement,
+                        constraints: {
+                            facingMode: "environment",
+                            width: 1280,
+                            height: 720
+                        }
+                    },
+                    decoder: {
+                        readers: ['ean_reader', 'code_128_reader', 'upc_reader']
+                    },
+                    locate: true
+                }, function(err) {
+                    if (err) {
+                        showBarcodeError("Error al iniciar escáner: " + err.message);
+                        stopCameraStream();
+                        return;
+                    }
+                    Quagga.start();
+                    quaggaActive = true;
+                    $('#startScannerBtn').html('<i class="fas fa-stop me-1"></i> Detener Escáner');
+                });
+
+                Quagga.onDetected(function(result) {
+                    const barcode = result.codeResult.code;
+                    handleScannedBarcode(barcode);
+                });
+
+            } catch (error) {
+                showBarcodeError("Error de cámara: " + error.message);
+                $('#scanning-indicator').hide();
+                stopCameraStream();
+            }
+        }
+
+        // Detener el escáner y la cámara
+        function stopBarcodeScanner() {
+            if (quaggaActive) {
+                Quagga.stop();
+                quaggaActive = false;
+            }
+            stopCameraStream();
+            $('#scannerSection').hide();
+            $('#startScannerBtn').html('<i class="fas fa-camera me-1"></i> Escanear');
+            $('#scanning-indicator').hide();
+        }
+
+        // Detener el stream de la cámara
+        function stopCameraStream() {
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(track => track.stop());
+                cameraStream = null;
+            }
+            const videoElement = document.querySelector('#barcode-video');
+            if (videoElement) {
+                videoElement.srcObject = null;
+            }
+        }
+
+        // Manejar código escaneado
+        function handleScannedBarcode(barcode) {
+            // Mostrar el código escaneado en el campo de entrada
+            document.getElementById('barcodeInput').value = barcode;
+
+            // Mostrar confirmación visual
+            showBarcodeSuccess(barcode);
+
+            // Detener el escáner automáticamente
+            stopBarcodeScanner();
+        }
+
+        // Funciones de UI
+        function showBarcodeSuccess(code) {
+            $('#scanned-code').text(code);
+            $('#barcode-result').fadeIn();
+            $('#barcode-error').hide();
+            $('#scanning-indicator').hide();
+        }
+
+        function showBarcodeError(msg) {
+            $('#barcode-error').html(`<i class="fas fa-exclamation-circle me-1"></i> ${msg}`).fadeIn();
+            $('#barcode-result').hide();
+            $('#scanning-indicator').hide();
+        }
+
+        // Función para formatear moneda
+        function formatCurrency(amount) {
+            return '$' + amount.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+        }
+
+              // Cálculo de impuestos corregido
+               // Actualizar la función calcularImpuestos() para mayor precisión:
+        function calcularImpuestos() {
+            const precio = parseFloat($('#precioInput').val()) || 0;
+            const alicuotaIVA = parseFloat($('#alicuotaIVA').val()) || 0;
+            const tieneImpInt = $('#impIntToggle').is(':checked');
+            const porcentajeImpInt = (parseFloat($('#impIntInput').val()) || 0) / 100;
+
+            // Calcular componentes
+            const denominador = 1 + alicuotaIVA + (tieneImpInt ? porcentajeImpInt : 0);
+            const neto = precio / denominador;
+            const iva = neto * alicuotaIVA;
+            const impInt = tieneImpInt ? neto * porcentajeImpInt : 0;
+
+            // Ajuste por redondeo para que sumen exactamente el precio
+            const suma = neto + iva + impInt;
+            const diferencia = precio - suma;
+            const impIntAjustado = impInt + diferencia;
+
+            // Mostrar valores
+            $('#ivaPercentage').text((alicuotaIVA * 100).toFixed(1));
+            $('#netoPreview').text(formatCurrency(neto));
+            $('#ivaPreview').text(formatCurrency(iva));
+
+            if (tieneImpInt) {
+                $('#impIntLine').show();
+                $('#impIntAmount').text(formatCurrency(impIntAjustado));
+            } else {
+                $('#impIntLine').hide();
+            }
+
+            $('#totalPreview').text(formatCurrency(precio));
+        }
+
+        // Inicialización
+        $(document).ready(function() {
+            // Escáner de código de barras
+            $('#startScannerBtn').click(function() {
+                if (quaggaActive) {
+                    stopBarcodeScanner();
+                } else {
+                    startBarcodeScanner();
+                }
+            });
+
+            // Toggle para impuestos especiales
+            $('#impIntToggle').change(function() {
+                $('#impIntSection').toggle(this.checked);
+                calcularImpuestos();
+            });
+
+            $('#percepcionToggle').change(function() {
+                $('#percepcionSection').toggle(this.checked);
+                calcularImpuestos();
+            });
+
+            // Actualizar vista previa de impuestos cuando cambian los valores
+            $('input[name="Precio"], select[name="AlicuotaIVA"], input[name="PorcentajeImpuestoInterno"], input[name="PorcentajePercepcion"]').on('input', function() {
+                calcularImpuestos();
+            });
+
+            // Calcular impuestos al cargar la página
+            calcularImpuestos();
+
+            // Limpieza al salir de la página
+            $(window).on('beforeunload', function() {
+                stopBarcodeScanner();
+            });
+        });
+
+        // Validación del formulario
+        (() => {
+            'use strict'
+            const forms = document.querySelectorAll('.needs-validation')
+
+            Array.from(forms).forEach(form => {
+                form.addEventListener('submit', event => {
+                    if (!form.checkValidity()) {
+                        event.preventDefault()
+                        event.stopPropagation()
+                    }
+
+                    form.classList.add('was-validated')
+                }, false)
+            })
+        })()
+    </script>
+}

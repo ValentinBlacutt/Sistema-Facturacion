@@ -1,0 +1,35 @@
+﻿@{
+    ViewData["Title"] = "Página de Inicio";
+}
+
+<div class="text-center py-5 bg-light rounded-lg shadow-lg">
+    <h1 class="display-4 text-primary fw-bold mb-4">
+        <i class="fas fa-handshake me-3"></i> ¡Bienvenido al Sistema de Facturación!
+    </h1>
+    <p class="lead text-secondary mb-5">Gestiona tus productos y facturas de manera eficiente y con total confianza.</p>
+
+    <div class="mt-5">
+        <a asp-controller="Productos" asp-action="Index" class="btn btn-primary btn-lg shadow-lg rounded-pill px-5 py-3 custom-hover-scale">
+            <i class="fas fa-box me-3"></i> Ir a Gestión de Productos
+        </a>
+    </div>
+
+    <div class="mt-4">
+        <a asp-controller="Facturas" asp-action="Index" class="btn btn-info btn-lg shadow-lg rounded-pill px-5 py-3 custom-hover-scale">
+            <i class="fas fa-file-invoice me-3"></i> Ir a Gestión de Facturas
+        </a>
+    </div>
+
+    
+</div>
+
+<style>
+    /* Estilo personalizado para el efecto de escala al pasar el ratón */
+    .custom-hover-scale {
+        transition: transform 0.2s ease-in-out;
+    }
+
+        .custom-hover-scale:hover {
+            transform: scale(1.05);
+        }
+</style>

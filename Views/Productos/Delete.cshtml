@@ -1,0 +1,49 @@
+﻿@model sistemaFacturacion.Models.Producto
+
+@{
+    ViewData["Title"] = "Eliminar Producto";
+}
+
+<div class="container mt-4">
+    <h1 class="text-center mb-3 text-danger fw-bold">
+        <i class="fas fa-trash-alt me-2"></i> Eliminar Producto
+    </h1>
+    <h3 class="text-center mb-4 text-secondary">¿Estás seguro de que quieres eliminar este producto?</h3>
+
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-lg p-4 mb-4 rounded-lg border-danger border-opacity-25">
+                <dl class="row mb-4">
+                    <dt class="col-sm-4 text-primary">
+                        @Html.DisplayNameFor(model => model.Nombre)
+                    </dt>
+                    <dd class="col-sm-8 text-dark">
+                        @Html.DisplayFor(model => model.Nombre)
+                    </dd>
+                    <dt class="col-sm-4 text-primary">
+                        @Html.DisplayNameFor(model => model.Precio)
+                    </dt>
+                    <dd class="col-sm-8 text-dark">
+                        @Html.DisplayFor(model => model.Precio)
+                    </dd>
+                    <dt class="col-sm-4 text-primary">
+                        @Html.DisplayNameFor(model => model.Stock)
+                    </dt>
+                    <dd class="col-sm-8 text-dark">
+                        @Html.DisplayFor(model => model.Stock)
+                    </dd>
+                </dl>
+
+                <form asp-action="Delete" method="post" class="mt-3 d-grid gap-2">
+                    <input type="hidden" asp-for="Id" />
+                    <button type="submit" class="btn btn-danger btn-lg rounded-pill shadow-sm">
+                        <i class="fas fa-trash-alt me-2"></i> Eliminar
+                    </button>
+                    <a asp-action="Index" class="btn btn-secondary btn-lg rounded-pill shadow-sm">
+                        <i class="fas fa-arrow-left me-2"></i> Volver a la Lista
+                    </a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,101 @@
+﻿@model IEnumerable<sistemaFacturacion.Models.Factura>
+
+@{
+    ViewData["Title"] = "Lista de Ventas";
+    // Obtener los valores de filtro actuales para pre-rellenar el formulario
+    var currentFechaInicio = ViewData["CurrentFechaInicio"] as string;
+    var currentFechaFin = ViewData["CurrentFechaFin"] as string;
+    var TotalMin = ViewData["TotalMin"] as string;
+    var TotalMax = ViewData["TotalMax"] as string;
+}
+
+<div class="container mt-4">
+    <h1 class="text-center mb-4 text-primary fw-bold">
+        <i class="fas fa-file-invoice me-2"></i> Lista de Facturas
+    </h1>
+
+    <p class="text-center mb-4">
+        <a asp-action="Create" class="btn btn-primary btn-lg shadow-sm rounded-pill px-4 py-2">
+            <i class="fas fa-plus-circle me-2"></i> Hacer Venta
+        </a>
+    </p>
+
+    <div class="card shadow-lg p-4 mb-4 bg-light rounded-lg border-primary border-opacity-25">
+        <h5 class="card-title text-primary mb-3">
+            <i class="fas fa-filter me-2"></i> Filtrar Ventas
+        </h5>
+        <form asp-action="Index" method="get" class="row g-3">
+            <div class="col-md-3">
+                <label for="fechaInicio" class="form-label text-secondary">Fecha Inicio:</label>
+                <input type="date" name="fechaInicio" id="fechaInicio" class="form-control rounded-pill shadow-sm" value="@currentFechaInicio" />
+            </div>
+            <div class="col-md-3">
+                <label for="fechaFin" class="form-label text-secondary">Fecha Fin:</label>
+                <input type="date" name="fechaFin" id="fechaFin" class="form-control rounded-pill shadow-sm" value="@currentFechaFin" />
+            </div>
+
+            <div class="col-md-2">
+                <label for="TotalMin" class="form-label text-secondary">Total Mínimo:</label>
+                <input type="number" name="TotalMin" id="TotalMin" class="form-control rounded-pill shadow-sm" value="@TotalMin" />
+            </div>
+            <div class="col-md-2">
+                <label for="TotalMax" class="form-label text-secondary">Total Máximo:</label>
+                <input type="number" name="TotalMax" id="TotalMax" class="form-control rounded-pill shadow-sm" value="@TotalMax" />
+            </div>
+
+            <div class="col-md-2 d-flex flex-column justify-content-end">
+                <button type="submit" class="btn btn-info rounded-pill shadow-sm mb-2">
+                    <i class="fas fa-search me-2"></i> Aplicar Filtro
+                </button>
+                <a asp-action="Index" class="btn btn-secondary rounded-pill shadow-sm">
+                    <i class="fas fa-times-circle me-2"></i> Limpiar Filtro
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-striped table-hover table-bordered rounded-lg shadow-sm">
+            <thead class="bg-primary text-white">
+                <tr>
+                    <th scope="col">
+                        @Html.DisplayNameFor(model => model.Fecha)
+                    </th>
+                    <th scope="col">
+                        @Html.DisplayNameFor(model => model.Total)
+                    </th>
+                    <th scope="col" class="text-center">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Any())
+                {
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Fecha)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Total)
+                            </td>
+                            <td class="text-center">
+                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-info rounded-pill me-1" title="Detalles">
+                                    <i class="fas fa-info-circle"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="3" class="text-center text-muted py-4">
+                            <i class="fas fa-exclamation-circle me-2"></i> No se encontraron facturas con los criterios de filtro.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

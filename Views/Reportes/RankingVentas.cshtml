@@ -1,0 +1,198 @@
+﻿@model sistemaFacturacion.Models.RankingViewModel
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/ranking.css" />
+}
+
+<div class="container-fluid py-4">
+    <!-- Header con gradiente -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-lg" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <div class="card-body text-white p-4">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <h2 class="mb-1 fw-bold">
+                                <i class="bi bi-graph-up me-2"></i>Reporte de Ventas
+                            </h2>
+                            <p class="mb-0 opacity-75">
+                                Del @Model.FechaInicio.ToString("dd/MM/yyyy") al @Model.FechaFin.ToString("dd/MM/yyyy")
+                            </p>
+                        </div>
+                        <div class="text-end">
+                            <div class="bg-white bg-opacity-25 rounded-3 p-3">
+                                <i class="bi bi-calendar-range fs-1"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Métricas principales -->
+    <div class="row mb-5">
+        <div class="col-lg-6 mb-3">
+            <div class="card border-0 shadow-sm h-100 hover-card">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-success bg-opacity-10 rounded-circle p-3">
+                                <i class="bi bi-currency-dollar fs-2 text-success"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1 fw-medium">Total Facturado</h6>
+                            <h3 class="mb-0 fw-bold text-success">@Model.TotalFacturado.ToString("C")</h3>
+                            <small class="text-muted">
+                                <i class="bi bi-arrow-up text-success"></i> Período seleccionado
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 mb-3">
+            <div class="card border-0 shadow-sm h-100 hover-card">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-info bg-opacity-10 rounded-circle p-3">
+                                <i class="bi bi-box-seam fs-2 text-info"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1 fw-medium">Unidades Vendidas</h6>
+                            <h3 class="mb-0 fw-bold text-info">@Model.CantidadTotalProductos</h3>
+                            <small class="text-muted">
+                                <i class="bi bi-box text-info"></i> Total de productos
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros mejorados -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light border-0 py-3">
+                    <h5 class="mb-0 text-dark">
+                        <i class="bi bi-funnel me-2"></i>Filtros de Búsqueda
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <form method="get">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-4">
+                                <label class="form-label fw-medium text-dark">
+                                    <i class="bi bi-calendar-event me-1"></i>Fecha Inicio
+                                </label>
+                                <input type="date" name="fechaInicio" class="form-control form-control-lg border-0 shadow-sm"
+                                       value="@Model.FechaInicio.ToString("yyyy-MM-dd")" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-medium text-dark">
+                                    <i class="bi bi-calendar-check me-1"></i>Fecha Fin
+                                </label>
+                                <input type="date" name="fechaFin" class="form-control form-control-lg border-0 shadow-sm"
+                                       value="@Model.FechaFin.ToString("yyyy-MM-dd")" />
+                            </div>
+                            <div class="col-md-4">
+                                <button type="submit" class="btn btn-primary btn-lg w-100 shadow-sm">
+                                    <i class="bi bi-search me-2"></i>Aplicar Filtros
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rankings con diseño mejorado -->
+    <div class="row">
+        <!-- Productos más vendidos -->
+        <div class="col-xl-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header border-0 py-4" style="background: linear-gradient(135deg, #28a745, #20c997);">
+                    <h5 class="mb-0 text-white fw-bold">
+                        <i class="bi bi-trophy-fill me-2"></i>Top 10 Productos Más Vendidos
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        @{
+                            int posicion = 1;
+                        }
+                        @foreach (var producto in Model.MasVendidos)
+                        {
+                            <div class="list-group-item border-0 py-3 px-4 ranking-item">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0 me-3">
+                                        <div class="ranking-number bg-success text-white">
+                                            @posicion
+                                        </div>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1 fw-medium">@producto.Nombre</h6>
+                                        <small class="text-muted">Producto destacado</small>
+                                    </div>
+                                    <div class="flex-shrink-0">
+                                        <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 fs-6">
+                                            <i class="bi bi-box-seam me-1"></i>@producto.Cantidad
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            posicion++;
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Productos menos vendidos -->
+        <div class="col-xl-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header border-0 py-4" style="background: linear-gradient(135deg, #ffc107, #fd7e14);">
+                    <h5 class="mb-0 text-white fw-bold">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>Top 10 Productos Menos Vendidos
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        @{
+                            int posicionMenos = 1;
+                        }
+                        @foreach (var producto in Model.MenosVendidos)
+                        {
+                            <div class="list-group-item border-0 py-3 px-4 ranking-item">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0 me-3">
+                                        <div class="ranking-number bg-warning text-dark">
+                                            @posicionMenos
+                                        </div>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1 fw-medium">@producto.Nombre</h6>
+                                        <small class="text-muted">Necesita atención</small>
+                                    </div>
+                                    <div class="flex-shrink-0">
+                                        <span class="badge bg-warning bg-opacity-10 text-warning px-3 py-2 fs-6">
+                                            <i class="bi bi-box-seam me-1"></i>@producto.Cantidad
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            posicionMenos++;
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

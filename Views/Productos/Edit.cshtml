@@ -1,0 +1,208 @@
+﻿@model sistemaFacturacion.Models.Producto
+
+@{
+    ViewData["Title"] = "Editar Producto";
+}
+
+<div class="container mt-4">
+    <h1 class="text-center mb-4 text-primary fw-bold">
+        <i class="fas fa-edit me-2"></i> Editar Producto
+    </h1>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg p-4 rounded-lg border-primary border-opacity-25">
+                <form asp-action="Edit" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <input type="hidden" asp-for="Id" />
+                    <input type="hidden" asp-for="EstaEliminado" />
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="Nombre" class="form-label text-secondary"></label>
+                                <input asp-for="Nombre" class="form-control rounded-pill shadow-sm" />
+                                <span asp-validation-for="Nombre" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="CodigoBarras" class="form-label text-secondary"></label>
+                                <input asp-for="CodigoBarras" class="form-control rounded-pill shadow-sm" />
+                                <span asp-validation-for="CodigoBarras" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sección de Precio e Impuestos -->
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                <label asp-for="Precio" class="form-label text-secondary"></label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input asp-for="Precio" id="precioInput" class="form-control rounded-pill shadow-sm" />
+                                </div>
+                                <span asp-validation-for="Precio" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                <label asp-for="AlicuotaIVA" class="form-label text-secondary"></label>
+                                <select asp-for="AlicuotaIVA" id="alicuotaIVA" class="form-select rounded-pill shadow-sm">
+                                    <option value="0.21">IVA General (21%)</option>
+                                    <option value="0.105">IVA Reducido (10.5%)</option>
+                                    <option value="0">Exento (0%)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                <label class="form-label text-secondary">Desglose Completo</label>
+                                <div class="p-2 bg-light rounded shadow-sm">
+                                    <small>
+                                        <div class="d-flex justify-content-between">
+                                            <span>Neto:</span>
+                                            <span id="netoPreview">$0.00</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between">
+                                            <span>IVA (<span id="ivaPercentage">21</span>%):</span>
+                                            <span id="ivaPreview">$0.00</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between" id="impIntLine" style="display:none;">
+                                            <span>Imp. Interno:</span>
+                                            <span id="impIntAmount">$0.00</span>
+                                        </div>
+                                        <hr class="my-1">
+                                        <div class="d-flex justify-content-between fw-bold">
+                                            <span>Total:</span>
+                                            <span id="totalPreview">$0.00</span>
+                                        </div>
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Impuestos Especiales -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card mb-3 shadow-sm rounded-lg">
+                                <div class="card-header bg-light">
+                                    <div class="form-check form-switch">
+                                        <input asp-for="TieneImpuestoInterno" class="form-check-input" id="impIntToggle" />
+                                        <label asp-for="TieneImpuestoInterno" class="form-check-label text-secondary fw-bold"></label>
+                                    </div>
+                                </div>
+                                <div class="card-body" id="impIntSection" style="@(Model.TieneImpuestoInterno ? "" : "display:none;")">
+                                    <div class="form-group mb-3">
+                                        <label asp-for="PorcentajeImpuestoInterno" class="form-label text-secondary"></label>
+                                        <div class="input-group">
+                                            <input asp-for="PorcentajeImpuestoInterno" id="impIntInput" class="form-control rounded-pill shadow-sm" />
+                                            <span class="input-group-text">%</span>
+                                        </div>
+                                        <span asp-validation-for="PorcentajeImpuestoInterno" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Espacio vacío para mantener el diseño -->
+                        <div class="col-md-6">
+                            <!-- Puedes agregar aquí otros impuestos o información adicional si es necesario -->
+                        </div>
+                    </div>
+
+                    <!-- Stock -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="Stock" class="form-label text-secondary"></label>
+                                <input asp-for="Stock" class="form-control rounded-pill shadow-sm" />
+                                <span asp-validation-for="Stock" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="AlertaStockMinimo" class="form-label text-secondary"></label>
+                                <input asp-for="AlertaStockMinimo" class="form-control rounded-pill shadow-sm" />
+                                <span asp-validation-for="AlertaStockMinimo" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group d-grid gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg rounded-pill shadow-sm">
+                            <i class="fas fa-save me-2"></i> Guardar Cambios
+                        </button>
+                        <a asp-action="Index" class="btn btn-secondary btn-lg rounded-pill shadow-sm">
+                            <i class="fas fa-arrow-left me-2"></i> Volver a la Lista
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        // Función para formatear moneda
+        function formatCurrency(amount) {
+            return '$' + amount.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+        }
+
+        // Cálculo de impuestos
+               function calcularImpuestos() {
+            const precio = parseFloat($('#precioInput').val()) || 0;
+            const alicuotaIVA = parseFloat($('#alicuotaIVA').val()) || 0;
+            const tieneImpInt = $('#impIntToggle').is(':checked');
+            // Convertir porcentaje a decimal (3% -> 0.03)
+            const porcentajeImpInt = (parseFloat($('#impIntInput').val()) || 0) / 100;
+
+            // Calcular el neto (precio sin impuestos)
+            const totalImpuestos = alicuotaIVA + (tieneImpInt ? porcentajeImpInt : 0);
+            const neto = precio / (1 + totalImpuestos);
+            const iva = neto * alicuotaIVA;
+            const impuestoInterno = tieneImpInt ? neto * porcentajeImpInt : 0;
+
+            // Actualizar vista previa
+            $('#ivaPercentage').text((alicuotaIVA * 100).toFixed(1));
+            $('#netoPreview').text(formatCurrency(neto));
+            $('#ivaPreview').text(formatCurrency(iva));
+
+            if (tieneImpInt) {
+                $('#impIntLine').show();
+                $('#impIntAmount').text(formatCurrency(impuestoInterno));
+            } else {
+                $('#impIntLine').hide();
+            }
+
+            $('#totalPreview').text(formatCurrency(precio)); // Siempre igual al precio ingresado
+        }
+        // Inicialización
+        $(document).ready(function() {
+            // Toggle para impuesto interno
+            $('#impIntToggle').change(function() {
+                $('#impIntSection').toggle(this.checked);
+                calcularImpuestos();
+            });
+
+            // Actualizar vista previa de impuestos cuando cambian los valores
+            $('#precioInput, #alicuotaIVA, #impIntInput').on('input', function() {
+                calcularImpuestos();
+            });
+
+            // Calcular impuestos al cargar la página
+            calcularImpuestos();
+        });
+    </script>
+}
