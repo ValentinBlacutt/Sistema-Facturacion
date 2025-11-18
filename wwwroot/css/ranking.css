@@ -1,0 +1,51 @@
+﻿.hover-card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+    .hover-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+    }
+
+.ranking-number {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.ranking-item {
+    transition: background-color 0.2s ease-in-out;
+}
+
+    .ranking-item:hover {
+        background-color: #f8f9fa;
+    }
+
+.form-control:focus {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #0d6efd, #6610f2);
+    border: none;
+    transition: transform 0.2s ease-in-out;
+}
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        background: linear-gradient(135deg, #0b5ed7, #520dc2);
+    }
+
+.card {
+    border-radius: 15px;
+}
+
+.badge {
+    border-radius: 10px;
+}
